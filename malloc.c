@@ -5,6 +5,8 @@
 
 static int initialized = FALSE;
 
+void *initialize();
+
 void *memChunkSetup()
 {
     int headerSize = sizeof( Header );
@@ -15,7 +17,8 @@ void *memChunkSetup()
 
     /* Insert a header for the chunk of memory in
     front of the chunk. */
-    
+    Header *newHeader = makeHeader( CHUNK_SIZE, TRUE, currBreak,
+    NULL );
 
     return newHeader;
 }
