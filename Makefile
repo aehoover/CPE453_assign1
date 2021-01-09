@@ -1,14 +1,13 @@
-CC = gcc
-CFLAGS = -std=c99 -Wall -ansi -pedantic -g
-MAIN = assign1
-OBJS = assign1.o
-all : $(MAIN)
+CLAGS = -g -Wall -std=c99 -ansi -pedantic
 
-$(MAIN) : $(OBJS) assign1.c
-	$(CC) $(CFLAGS) -o $(MAIN) $(OBJS)
+assign1: assign1.o
+	gcc -o assign1 $(CFLAGS) assign1.o
 
-assign1.o : assign1.c assign1.h
-	$(CC) $(CFLAGS) -c assign1.c
+malloc.o: malloc.c malloc.h
+	gcc -c $(CFLAGS) malloc.c
 
-clean :
-	rm *.o $(MAIN) core
+assign1.o: assign1.c
+	gcc -c $(CFLAGS) assign1.c
+
+clean:
+	rm *.o

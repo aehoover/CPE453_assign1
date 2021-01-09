@@ -6,11 +6,22 @@ typedef struct Header
 {
 	int size;
     int isFree;
-    intptr_t *block;
+    void *block;
 	struct Header *next;
 } Header;
 
-/* */
+void *initialize()
+{
+    return NULL;
+}
+
+/* memChunkSetup grabs a CHUNK_SIZE block of memory
+by calling sbrk and sets it up for use by malloc. */
+void *memChunkSetup();
+
+/* Makes a header for a chunk of memory and places
+it in the appropriate space in memory, as retrieved
+by memChunkSetup. */
 Header *makeHeader( int size, int isFree );
 
 /* */
