@@ -3,9 +3,87 @@
 #include <stddef.h>
 #include "malloc.h"
 
-static int initialized = FALSE;
+static void *programMem = NULL;
 
-void *initialize();
+void extendChunk( Header *header )
+{
+    Header *tail = getTail( programMem );
+
+    if ( header == tail )
+    {
+        void *currBreak = sbrk( CHUNK_SIZE );
+    }
+}
+
+Header *tail( Header *listHead )
+{
+    Header *head = listHead;
+
+    while ( head->next != NULL )
+    {
+        head = head->next;
+    }
+
+    return head;
+}
+
+void allignBlock( Header *address )
+{
+    while ( isAlligned( address->block ) == FALSE )
+    {
+        /* move to the next available address */
+        address->block += 1;
+        /* decrement the size of the free memory
+        by one location */
+        address->size -= 1; 
+    }
+}
+
+int isAlligned( Header *address )
+{
+    int allignment = FALSE;
+
+    if ( ( intptr_t )address % 16 == 0 )
+    {
+        allignment = TRUE;
+    }
+
+    return allignment;
+}
+
+Header *findFreeMem( int size )
+{
+    Header *head = programMem;
+    Header *location = NULL;
+
+    while ( TRUE )
+    {
+        if ( head->isFree == TRUE && head->size >= size )
+        {
+            location = head;
+            break;
+        }
+        else if ( head->next == NULL )
+        {
+            break;
+        }
+
+        head = head->next;
+    }
+
+    return location;
+}
+
+void *location( Header *headerLocation )
+{
+    void *location = headerLocation + sizeof( Header );
+
+    /* Adjust the starting address of the free memory
+    to be divisible by 16 if neccessary */
+    allignBlock( location );
+
+    return location;
+}
 
 void *memChunkSetup()
 {
@@ -17,21 +95,15 @@ void *memChunkSetup()
 
     /* Insert a header for the chunk of memory in
     front of the chunk. */
-    Header *newHeader = makeHeader( CHUNK_SIZE, TRUE, currBreak,
-    NULL );
+    Header *newHeader = currBreak;
+    newHeader->size = CHUNK_SIZE;
+    newHeader->isFree = TRUE;
+    newHeader->block = location( newHeader );
+    newHeader->next = NULL;
 
-    return newHeader;
-}
-
-Header *makeHeader( int size, int isFree, void *insertLocation,
-void *next )
-{
-    Header *newHeader;
-    newHeader = currBreak;
-    newHeader->size = size;
-    newHeader->isFree = isFree;
-    newHeader->block = insertLocation;
-    newHeader->next = next;
+    /* Make sure the free space starts on an
+    address that is divisible by 16 */
+    allignBlock( newHeader );
 
     return newHeader;
 }
@@ -45,19 +117,43 @@ void *calloc( size_t nmemb, size_t size )
 
 void *malloc( size_t size )
 {
-    if ( !initialized )
+    Header *toAllocate = NULL;
+
+    /* If malloc has not previously been called, 
+    initialize the first chunk of memory. */
+    if ( programMem == NULL )
     {
-        /* Set up the first chunck of memory
-        for use by the program */
+        Header *memHeader = memChunkSetup();
+        programMem = memHeader;
+        toAllocate = memHeader;
     }
     else
     {
-        /* Look for free space in memory that has
-        already been set aside for the program */
+        /* Search the current list of chunks for free
+        memory to give the user */
+        toAllocate = findFreeMem( size );
+
+            /* If no free memory large enough is found, use sbrk
+            to grab another chunk of memory */
+            if ( toAllocate == NULL )
+            {
+                Header *tail = getTail( programMem );
+                tail = memChunkSetup();
+                toAllocate = tail;
+            }
     }
 
-    return NULL;
+    /* Put another header after the memory the user
+    requested, to keep track of how much free space
+    is available to the program */
+    Header *nextHeader = toAllocate->block + size;
+    nextHeader->size = ( toAllocate->size - size -
+                       ( sizeof( Header ) ) );
+    nextHeader->isFree = TRUE;
+    nextHeader->block = location( nextHeader );
+    nextHeader->next = NULL;
 
+    return toAllocate;
 }
 
 void free( void *ptr )

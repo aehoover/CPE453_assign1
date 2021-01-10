@@ -10,19 +10,44 @@ typedef struct Header
 	struct Header *next;
 } Header;
 
-void *initialize()
-{
-    return NULL;
-}
+/* extendChunk takes the address of the header of
+a chunk of free memory. If the header is the tail
+of the memory list, it uses sbrk to extend the
+chunk of memory by CHUNK_SIZE bytes */
+void extendChunk( Header *header );
+
+/* tail takes a pointer to the first header in the
+list of memory. It iterates through the list until
+it finds the tail and returns a pointer to that
+header. */
+Header *getTail( Header *listHead );
+
+/* allignBlock takes the location of the header of
+a free block of memory. It then checks that the starting
+address of the free memory is evenly divisible by 16, 
+and if it is not, it moves space by space to find the 
+first available address that is. It returns nothing. */
+void allignBlock( Header *address );
+
+/* isAlligned takes a memory address and returns
+1 if it is divisible by 16 and 0 otherwise */
+int isAlligned( Header *address );
+
+/* findFreeMem searches the list of memory chunks set
+aside for the program. It returns a pointer to the 
+header of the free space if found, and NULL otherwise. */
+Header *findFreeMem( int size );
+
+/* location takes a pointer to a header of a chunk of 
+memory and calculates the location of the usable 
+memory */
+void *location( Header *headerLocation );
 
 /* memChunkSetup grabs a CHUNK_SIZE block of memory
-by calling sbrk and sets it up for use by malloc. */
+by calling sbrk and sets it up for use by malloc. It
+returns the address of the header at the start of 
+the chunk. */
 void *memChunkSetup();
-
-/* Makes a header for a chunk of memory and places
-it in the appropriate space in memory, as retrieved
-by memChunkSetup. */
-Header *makeHeader( int size, int isFree );
 
 /* */
 void *calloc( size_t nmemb, size_t size );
