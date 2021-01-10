@@ -1,13 +1,18 @@
+CC = gcc
 CLAGS = -g -Wall -std=c99 -ansi -pedantic
 
-assign1: assign1.o
-	gcc -o assign1 $(CFLAGS) assign1.o
+malloc: libmalloc.a libmalloc.so
+
+.PHONY: malloc
 
 malloc.o: malloc.c malloc.h
 	gcc -c $(CFLAGS) malloc.c
 
-assign1.o: assign1.c
-	gcc -c $(CFLAGS) assign1.c
+libmalloc.a: malloc.o
+	ar r libmalloc.a malloc.o
+
+libmalloc.so: malloc.o
+	$(CC) -shared -fPIC -o libmalloc.so malloc.o
 
 clean:
-	rm *.o
+	rm *.o *.a *.so
