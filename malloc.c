@@ -1,9 +1,52 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "malloc.h"
 
 static void *programMem = NULL;
+static int val = -9898789;
+
+void setToZero( void *ptr, int numBytes )
+{
+
+}
+
+void merge( Header *l, Header *r )
+{
+    /* Calculate the size of the new chunk and update
+    the l header's size */
+    l->size += ( r->size + sizeof( Header ) );
+
+    /* unlink the right chunk from the list */
+    if ( r->next == NULL )
+    {
+        l->next = NULL;
+    }
+    else
+    {
+        l->next = r->next;
+    }
+}
+
+void deFragment( Header *headPtr )
+{
+    Header *head = headerPtr;
+
+    while( head-next != NULL )
+    {
+        if ( head->isFree == TRUE && 
+             head->next->isFree == TRUE )
+        {
+            /* merge the chunks */
+            merge( head, head->next );
+        }
+        else
+        {
+            head = head->next;
+        }
+    }
+}
 
 void extendChunk( Header *header )
 {
@@ -15,7 +58,7 @@ void extendChunk( Header *header )
     }
 }
 
-Header *tail( Header *listHead )
+Header *getTail( Header *listHead )
 {
     Header *head = listHead;
 
@@ -110,14 +153,27 @@ void *memChunkSetup()
 
 void *calloc( size_t nmemb, size_t size )
 {
+    /* TO DO: Find way to test in the calculated 
+    size will result in an intever overflow */
+    size_t bytes = ( nmemb * size );
+    
+    Header *location = malloc( bytes );
 
-    return NULL;
+    if ( location != NULL )
+    {
+        /* Initialize the allocated memory to all
+        zeros */
+    }
+
+    return location;
 
 }
 
 void *malloc( size_t size )
 {
     Header *toAllocate = NULL;
+
+    printf( "%d", val );
 
     /* If malloc has not previously been called, 
     initialize the first chunk of memory. */
@@ -158,11 +214,79 @@ void *malloc( size_t size )
 
 void free( void *ptr )
 {
+    Header *head = programMem;
 
+    while ( TRUE )
+    {
+        if ( head->block == ptr )
+        {
+            head->isFree = TRUE;
+            break;
+        }
+        else if ( head->next == NULL )
+        {
+            break;
+        }
+
+        head = head->next;
+    }
 }
 
 void *realloc( void *ptr, size_t size )
 {
-    return NULL;
+    Header *newLocation = NULL;
+
+    if ( ptr->size < size )
+    {
+        int diff = ( ptr->size - size );
+
+        if ( diff > sizeof( Header ) )
+        {
+            /* Keep the location the same */
+            newLocation = ptr;
+            /* Update the size of the memory */
+            ptr->size = size;
+
+            /* Insert a new header for the leftover
+            memory */
+            Header *newHeader = ( ptr + size );
+            newHeader->size = ( diff - sizeof( Header ) );
+            newHeader->isFree = TRUE;
+            /* TO DO: Update functions so that if when
+            aligning memory addresses to be divisible by
+            16, it uses up all available memory in the block
+            before aligning, it makes that spot unusable */
+            newHeader->block = location( newHeader );
+            newHeader->next = ptr->next;
+
+            ptr->next = newHeader;
+        }
+        else
+        {
+            /* Need to grab a different free space to
+            give the user */
+            newLocation = findFreeMem( size );
+
+            if ( newLocation == NULL )
+            {
+                newLocation = malloc( size );
+            }
+        }
+    }
+    else if ( ptr->size > size )
+    {
+        newLocation = findFreeMem( size );
+
+        if ( newLocation == NULL )
+        {
+            newLocation = malloc( size );
+        }
+    }
+    else
+    {
+        newLocation = ptr;
+    }
+
+    return newLocation;
 
 }

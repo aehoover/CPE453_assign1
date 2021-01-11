@@ -10,6 +10,21 @@ typedef struct Header
 	struct Header *next;
 } Header;
 
+/* Takes a memory address and a number of bytes. 
+Initializes that number of bytes of memory, starting
+at the location given, to zero */
+void setToZero( void *ptr, int numBytes );
+
+/* merge takes two pointers, each to headers of adjacent
+memory chunks in the list. It then merges the two chunks
+into a single chunk. */
+void merge( Header *l, Header *r );
+
+/* deFragment iterates through the list of memory chunks
+and merges adjacet chunks into a single chunk if they are
+both free. */
+void deFragment( Header *header );
+
 /* extendChunk takes the address of the header of
 a chunk of free memory. If the header is the tail
 of the memory list, it uses sbrk to extend the
