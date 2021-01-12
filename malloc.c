@@ -298,6 +298,8 @@ void my_free( void *ptr )
 
         head = head->next;
     }
+
+    deFragment( programMem );
 }
 
 

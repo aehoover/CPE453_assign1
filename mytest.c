@@ -19,5 +19,7 @@ int main( int argc, char *argv[] )
 
     my_free( intPtr );
 
+    printLinked();
+
     return 0;
 }
