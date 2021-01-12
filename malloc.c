@@ -10,6 +10,34 @@
 
 static void *programMem = NULL;
 
+void printLinked()
+{
+    Header *head = programMem;
+
+    while ( TRUE )
+    {
+        printf( "header start: %d\n", head );
+        printf( "block start: %d\n", head->block );
+        
+        if ( head->next == NULL )
+        {
+            break;
+        }
+
+        head = head->next;
+    }
+}
+
+int rndUpNrst16( int bytes )
+{
+    while ( bytes % 16 != 0 )
+    {
+        bytes += 1;
+    }
+
+    return bytes;
+}
+
 void *movePtr( void *ptr, int bytes )
 {
     intptr_t ptrInt = ( intptr_t )ptr;
@@ -144,33 +172,38 @@ void *location( Header *headerLocation )
 void *memChunkSetup()
 {
     int headerSize = sizeof( Header );
-    Header *currBreak = sbrk( 0 );
+    void *currBreak = sbrk( 0 );
+
+    /* Round the size of the header up to the
+    nearest 16, to ensure proper alignment */
+    headerSize = rndUpNrst16( headerSize );
+
     /* Grab a chunk of memory for use by the program
     by calling sbrk. */
     void *newBreak = sbrk( headerSize + CHUNK_SIZE );
 
     /* Insert a header for the chunk of memory in
     front of the chunk. */
-    Header *newHeader = currBreak;
+    Header *newHeader = ( Header* )currBreak;
     newHeader->size = CHUNK_SIZE;
     newHeader->isFree = TRUE;
-    newHeader->block = location( newHeader );
+    newHeader->block = ( char* )newHeader + headerSize;
     newHeader->next = NULL;
 
     /* Make sure the free space starts on an
     address that is divisible by 16 */
-    allignBlock( newHeader );
+    //allignBlock( newHeader );
 
     return newHeader;
 }
 
-void *calloc( size_t nmemb, size_t size )
+void *my_calloc( size_t nmemb, size_t size )
 {
     /* TO DO: Find way to test in the calculated 
     size will result in an intever overflow */
     size_t bytes = ( nmemb * size );
     
-    Header *location = malloc( bytes );
+    Header *location = my_malloc( bytes );
 
     if ( location != NULL )
     {
@@ -182,7 +215,7 @@ void *calloc( size_t nmemb, size_t size )
 
 }
 
-void *malloc( size_t size )
+void *my_malloc( size_t size )
 {
     Header *toAllocate = NULL;
     Header *nextHeader = NULL;
@@ -190,6 +223,7 @@ void *malloc( size_t size )
     
 
     write( STDOUT_FILENO, msg, sizeof( msg ) );
+    //fputs( msg, stdout );
 
     /* If malloc has not previously been called, 
     initialize the first chunk of memory. */
@@ -225,14 +259,15 @@ void *malloc( size_t size )
     nextHeader->block = location( nextHeader );
     nextHeader->next = NULL;
 
-    return toAllocate;
+    return toAllocate->block;
 }
 
-void free( void *ptr )
+void my_free( void *ptr )
 {
     Header *head = programMem;
 
     write( STDOUT_FILENO, freemsg, sizeof( freemsg ) );
+    //fputs( freemsg, stdout );
 
     if ( ptr == NULL )
     {
@@ -240,29 +275,29 @@ void free( void *ptr )
     }
 
 
-    //while ( TRUE )
-    //{
+    while ( TRUE )
+    {
         /* Find the block in the list and 
         free it */
-        //if ( head->block == ptr )
-        //{
-        //    head->isFree = TRUE;
-        //    break;
-       // }
-       // else if ( head->next == NULL )
-       // {
+        if ( head->block == ptr )
+        {
+            head->isFree = TRUE;
+            break;
+        }
+        else if ( head->next == NULL )
+        {
             /* otherwise, if the address is not in our
             list of memory...*/
-        //    perror( "Error, location not found\n" );
-       //     break;
-       // }
+            perror( "Error, location not found\n" );
+            break;
+        }
 
-       // head = head->next;
-    //}
+        head = head->next;
+    }
 }
 
 
-void *realloc( void *ptr, size_t size )
+void *my_realloc( void *ptr, size_t size )
 {
     Header *newLocation = NULL;
     Header *hPtr = ptr;
@@ -303,7 +338,7 @@ void *realloc( void *ptr, size_t size )
 
             if ( newLocation == NULL )
             {
-                newLocation = malloc( size );
+                newLocation = my_malloc( size );
             }
         }
     }
@@ -313,7 +348,7 @@ void *realloc( void *ptr, size_t size )
 
         if ( newLocation == NULL )
         {
-            newLocation = malloc( size );
+            newLocation = my_malloc( size );
         }
     }
     else

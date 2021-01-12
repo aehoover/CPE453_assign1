@@ -11,6 +11,15 @@ typedef struct Header
 } Header;
 
 /* */
+void printLinked();
+
+/* rndUpNrst16 takes a number of bytes and checks
+if it is evenly divisible by 16. If it is not, it
+rounds bytes up to the nearest number that is, and
+returns that number. */
+int rndUpNrst16( int bytes );
+
+/* */
 void *movePtr( void *ptr, int bytes );
 
 /* Takes a memory address and a number of bytes. 
@@ -68,15 +77,15 @@ the chunk. */
 void *memChunkSetup();
 
 /* */
-void *calloc( size_t nmemb, size_t size );
+void *my_calloc( size_t nmemb, size_t size );
 
 /* malloc takes the size of memory to be allocated, in 
 bytes, and returns a pointer to the chunck of memory */
-void *malloc( size_t size );
+void *my_malloc( size_t size );
 
 /* */
-void free( void *ptr );
+void my_free( void *ptr );
 
 
 /* */
-void *realloc( void *ptr, size_t size );
+void *my_realloc( void *ptr, size_t size );
