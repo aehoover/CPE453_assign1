@@ -259,6 +259,10 @@ void *my_malloc( size_t size )
     nextHeader->block = location( nextHeader );
     nextHeader->next = NULL;
 
+    /* Link the memory the program requested to the 
+    free memory behind it */
+    toAllocate->next = nextHeader;
+
     return toAllocate->block;
 }
 
