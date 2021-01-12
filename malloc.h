@@ -10,6 +10,9 @@ typedef struct Header
 	struct Header *next;
 } Header;
 
+/* */
+void *movePtr( void *ptr, int bytes );
+
 /* Takes a memory address and a number of bytes. 
 Initializes that number of bytes of memory, starting
 at the location given, to zero */
@@ -73,6 +76,7 @@ void *malloc( size_t size );
 
 /* */
 void free( void *ptr );
+
 
 /* */
 void *realloc( void *ptr, size_t size );

@@ -4,8 +4,20 @@
 #include <stdio.h>
 #include "malloc.h"
 
+#define msg "In my malloc\n"
+#define freemsg "In my free\n"
+#define nullFree "Null ptr has been freed\n"
+
 static void *programMem = NULL;
-static int val = -9898789;
+
+void *movePtr( void *ptr, int bytes )
+{
+    intptr_t ptrInt = ( intptr_t )ptr;
+
+    ptrInt += bytes;
+
+    return ( void* )ptrInt;
+}
 
 void setToZero( void *ptr, int numBytes )
 {
@@ -31,9 +43,9 @@ void merge( Header *l, Header *r )
 
 void deFragment( Header *headPtr )
 {
-    Header *head = headerPtr;
+    Header *head = headPtr;
 
-    while( head-next != NULL )
+    while( head->next != NULL )
     {
         if ( head->isFree == TRUE && 
              head->next->isFree == TRUE )
@@ -54,7 +66,8 @@ void extendChunk( Header *header )
 
     if ( header == tail )
     {
-        void *currBreak = sbrk( CHUNK_SIZE );
+        void *currBreak = sbrk( ( int )CHUNK_SIZE );
+        tail->size += CHUNK_SIZE;
     }
 }
 
@@ -75,7 +88,7 @@ void allignBlock( Header *address )
     while ( isAlligned( address->block ) == FALSE )
     {
         /* move to the next available address */
-        address->block += 1;
+        address->block = movePtr( address->block, 1 );
         /* decrement the size of the free memory
         by one location */
         address->size -= 1; 
@@ -172,8 +185,11 @@ void *calloc( size_t nmemb, size_t size )
 void *malloc( size_t size )
 {
     Header *toAllocate = NULL;
+    Header *nextHeader = NULL;
 
-    printf( "%d", val );
+    
+
+    write( STDOUT_FILENO, msg, sizeof( msg ) );
 
     /* If malloc has not previously been called, 
     initialize the first chunk of memory. */
@@ -202,7 +218,7 @@ void *malloc( size_t size )
     /* Put another header after the memory the user
     requested, to keep track of how much free space
     is available to the program */
-    Header *nextHeader = toAllocate->block + size;
+    nextHeader = movePtr( toAllocate->block, size );
     nextHeader->size = ( toAllocate->size - size -
                        ( sizeof( Header ) ) );
     nextHeader->isFree = TRUE;
@@ -216,40 +232,58 @@ void free( void *ptr )
 {
     Header *head = programMem;
 
-    while ( TRUE )
-    {
-        if ( head->block == ptr )
-        {
-            head->isFree = TRUE;
-            break;
-        }
-        else if ( head->next == NULL )
-        {
-            break;
-        }
+    write( STDOUT_FILENO, freemsg, sizeof( freemsg ) );
 
-        head = head->next;
+    if ( ptr == NULL )
+    {
+        write( STDOUT_FILENO, nullFree, sizeof( nullFree ) );
     }
+
+
+    //while ( TRUE )
+    //{
+        /* Find the block in the list and 
+        free it */
+        //if ( head->block == ptr )
+        //{
+        //    head->isFree = TRUE;
+        //    break;
+       // }
+       // else if ( head->next == NULL )
+       // {
+            /* otherwise, if the address is not in our
+            list of memory...*/
+        //    perror( "Error, location not found\n" );
+       //     break;
+       // }
+
+       // head = head->next;
+    //}
 }
+
 
 void *realloc( void *ptr, size_t size )
 {
     Header *newLocation = NULL;
+    Header *hPtr = ptr;
 
-    if ( ptr->size < size )
+    if ( ( hPtr->size < size ) )
     {
-        int diff = ( ptr->size - size );
+        int diff = ( hPtr->size - size );
 
         if ( diff > sizeof( Header ) )
         {
+            Header *newHeader;
+            intptr_t ptrLocation = ( intptr_t )hPtr + size;
+
             /* Keep the location the same */
-            newLocation = ptr;
+            newLocation = hPtr;
             /* Update the size of the memory */
-            ptr->size = size;
+            hPtr->size = size;
 
             /* Insert a new header for the leftover
             memory */
-            Header *newHeader = ( ptr + size );
+            newHeader = ( Header* )ptrLocation;
             newHeader->size = ( diff - sizeof( Header ) );
             newHeader->isFree = TRUE;
             /* TO DO: Update functions so that if when
@@ -257,9 +291,9 @@ void *realloc( void *ptr, size_t size )
             16, it uses up all available memory in the block
             before aligning, it makes that spot unusable */
             newHeader->block = location( newHeader );
-            newHeader->next = ptr->next;
+            newHeader->next = hPtr->next;
 
-            ptr->next = newHeader;
+            hPtr->next = newHeader;
         }
         else
         {
@@ -273,7 +307,7 @@ void *realloc( void *ptr, size_t size )
             }
         }
     }
-    else if ( ptr->size > size )
+    else if ( hPtr->size > size )
     {
         newLocation = findFreeMem( size );
 
@@ -284,9 +318,8 @@ void *realloc( void *ptr, size_t size )
     }
     else
     {
-        newLocation = ptr;
+        newLocation = hPtr;
     }
 
     return newLocation;
-
 }

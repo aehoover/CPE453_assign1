@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <unistd.h>
 #include "malloc.h"
+
+#define startms "Program Start\n"
 
 int main( int argc, char *argv[] )
 {
-    printf( "Starting program to test malloc\n" );
+    write( STDOUT_FILENO, startms, sizeof( startms ) );
 
     int *intPtr = ( int* )malloc( (size_t)sizeof( int ) );
     *intPtr = 9;
