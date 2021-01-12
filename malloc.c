@@ -9,6 +9,7 @@
 #define nullFree "Null ptr has been freed\n"
 
 static void *programMem = NULL;
+static int HEADER_SIZE;
 
 void printLinked()
 {
@@ -18,6 +19,7 @@ void printLinked()
     {
         printf( "header start: %d\n", head );
         printf( "block start: %d\n", head->block );
+        printf( "status: %d\n", head->isFree );
         
         if ( head->next == NULL )
         {
@@ -178,6 +180,11 @@ void *memChunkSetup()
     nearest 16, to ensure proper alignment */
     headerSize = rndUpNrst16( headerSize );
 
+    /* Set the size of headers to be used for all
+    calls to malloc, so we do not need to keep 
+    calculating it */
+    HEADER_SIZE = headerSize;
+
     /* Grab a chunk of memory for use by the program
     by calling sbrk. */
     void *newBreak = sbrk( headerSize + CHUNK_SIZE );
@@ -186,7 +193,7 @@ void *memChunkSetup()
     front of the chunk. */
     Header *newHeader = ( Header* )currBreak;
     newHeader->size = CHUNK_SIZE;
-    newHeader->isFree = TRUE;
+    newHeader->isFree = FALSE;
     newHeader->block = ( char* )newHeader + headerSize;
     newHeader->next = NULL;
 
@@ -220,8 +227,6 @@ void *my_malloc( size_t size )
     Header *toAllocate = NULL;
     Header *nextHeader = NULL;
 
-    
-
     write( STDOUT_FILENO, msg, sizeof( msg ) );
     //fputs( msg, stdout );
 
@@ -254,15 +259,17 @@ void *my_malloc( size_t size )
     is available to the program */
     nextHeader = movePtr( toAllocate->block, size );
     nextHeader->size = ( toAllocate->size - size -
-                       ( sizeof( Header ) ) );
+                       ( 2 * HEADER_SIZE ) );
     nextHeader->isFree = TRUE;
-    nextHeader->block = location( nextHeader );
+    nextHeader->block = ( char* )nextHeader + HEADER_SIZE;
     nextHeader->next = NULL;
 
-    /* Link the memory the program requested to the 
-    free memory behind it */
+    /* Finish setting up the header of the block 
+    that will be allocated */
+    toAllocate->size = size;
+    toAllocate->isFree = FALSE;
     toAllocate->next = nextHeader;
-
+    
     return toAllocate->block;
 }
 
@@ -312,7 +319,7 @@ void *my_realloc( void *ptr, size_t size )
     {
         int diff = ( hPtr->size - size );
 
-        if ( diff > sizeof( Header ) )
+        if ( diff > HEADER_SIZE )
         {
             Header *newHeader;
             intptr_t ptrLocation = ( intptr_t )hPtr + size;
@@ -325,13 +332,13 @@ void *my_realloc( void *ptr, size_t size )
             /* Insert a new header for the leftover
             memory */
             newHeader = ( Header* )ptrLocation;
-            newHeader->size = ( diff - sizeof( Header ) );
+            newHeader->size = ( diff - HEADER_SIZE );
             newHeader->isFree = TRUE;
             /* TO DO: Update functions so that if when
             aligning memory addresses to be divisible by
             16, it uses up all available memory in the block
             before aligning, it makes that spot unusable */
-            newHeader->block = location( newHeader );
+            newHeader->block = ( char* )newHeader + HEADER_SIZE;
             newHeader->next = hPtr->next;
 
             hPtr->next = newHeader;
