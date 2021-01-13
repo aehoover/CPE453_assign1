@@ -10,6 +10,10 @@ typedef struct Header
 	struct Header *next;
 } Header;
 
+/* copyMem takes two pointers to headers and copies the
+contents of oldH's memory locations to those of newH */
+void copyMem( Header *oldH, Header *newH );
+
 /* */
 void printLinked();
 
@@ -77,15 +81,17 @@ the chunk. */
 void *memChunkSetup();
 
 /* */
-void *my_calloc( size_t nmemb, size_t size );
+void *calloc( size_t nmemb, size_t size );
 
 /* malloc takes the size of memory to be allocated, in 
 bytes, and returns a pointer to the chunck of memory */
-void *my_malloc( size_t size );
+void *malloc( size_t size );
 
 /* */
-void my_free( void *ptr );
+void free( void *ptr );
 
 
 /* */
-void *my_realloc( void *ptr, size_t size );
+void *realloc( void *ptr, size_t size );
+
+void *realloc2( void *ptr, size_t size );
