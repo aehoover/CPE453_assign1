@@ -165,7 +165,8 @@ Header *findFreeMem( int size )
 
     while ( TRUE )
     {
-        if ( head->isFree == TRUE && head->size >= size )
+        if ( head->isFree == TRUE && head->size >= 
+             size + HEADER_SIZE )
         {
             location = head;
             break;
@@ -199,7 +200,7 @@ void *memChunkSetup()
 
     if ( currBreak == ( void* )-1 )
     {
-        perror( "Error, failed to move break\n" );
+        perror( "Error, failed to move break no memory\n" );
         exit( 1 );
     }
 
@@ -215,6 +216,12 @@ void *memChunkSetup()
     /* Grab a chunk of memory for use by the program
     by calling sbrk. */
     void *newBreak = sbrk( headerSize + CHUNK_SIZE );
+
+    if ( newBreak == ( void* )-1 )
+    {
+        perror( "Error, failed to move break no memory\n ");
+        exit( 1 );
+    }
 
     /* Insert a header for the chunk of memory in
     front of the chunk. */
@@ -278,8 +285,20 @@ void *malloc( size_t size )
             if ( toAllocate == NULL )
             {
                 Header *tail = getTail( programMem );
-                tail = memChunkSetup();
-                toAllocate = tail;
+                toAllocate = memChunkSetup();
+
+                /* Check to make sure the chunk size we
+                are using is big enough */
+                if ( CHUNK_SIZE <= size )
+                {
+                    Header *secondChunk = memChunkSetup();
+                    toAllocate->next = secondChunk;
+                    merge( toAllocate, secondChunk );
+                }
+
+                /* Add the new tail to the end of the 
+                memory list */
+                tail->next = toAllocate;
             }
     }
 
@@ -343,7 +362,7 @@ void free( void *ptr )
 
 void *realloc( void *ptr, size_t size )
 {
-    write( STDOUT_FILENO, realmsg, sizeof( realmsg ) );
+    //write( STDOUT_FILENO, realmsg, sizeof( realmsg ) );
 
     Header *newLocation = NULL;
     Header *hPtr = ptr;
