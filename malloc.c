@@ -15,6 +15,19 @@
 static void *programMem = NULL;
 static int HEADER_SIZE;
 
+void fillWithZeros( Header *ptr, int bytes )
+{
+    int i;
+    char *data = ptr->block; /* Start of the bytes we
+                             will fill with zeros */
+
+    for ( i = 0; i < bytes; i++ )
+    {
+        *data = 0;
+        data += 1;
+    }
+}
+
 void copyMem( Header *oldH, Header *newH )
 {
     int i;
@@ -235,7 +248,7 @@ void *memChunkSetup()
 
     /* Make sure the free space starts on an
     address that is divisible by 16 */
-    //allignBlock( newHeader );
+    allignBlock( newHeader );
 
     return newHeader;
 }
@@ -254,10 +267,10 @@ void *calloc( size_t nmemb, size_t size )
     {
         /* Initialize the allocated memory to all
         zeros */
+        fillWithZeros( location->block, bytes );
     }
 
     return location;
-
 }
 
 void *malloc( size_t size )
@@ -352,7 +365,7 @@ void free( void *ptr )
             /* otherwise, if the address is not in our
             list of memory...*/
             perror( "Error, location not found\n" );
-            exit( 1 );
+            //exit( 1 );
             break;
         }
 
@@ -366,7 +379,7 @@ void free( void *ptr )
 
 void *realloc( void *ptr, size_t size )
 {
-    write( STDERR_FILENO, realmsg, sizeof( realmsg ) );
+    write( STDOUT_FILENO, realmsg, sizeof( realmsg ) );
 
     Header *newLocation = NULL;
     Header *hPtr = ptr;

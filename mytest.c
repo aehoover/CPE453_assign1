@@ -18,9 +18,18 @@ int main( int argc, char *argv[] )
     int *intPtr3 = ( int* )malloc( ( size_t )sizeof( int ) );
     *intPtr3 = 11;
 
+    //printLinked();
+    //printf( "//////////////////\n" );
+
     //free( intPtr );
     free( intPtr2 );
     //free( intPtr3 ); 
+
+    intPtr = realloc( NULL, ( size_t )sizeof( int ) );
+    *intPtr = 3;
+    //printf( "intPtr: %ld\n", ( intptr_t )intPtr );
+    //printLinked();
+    
 
     //int *intPtr4 = realloc( NULL, ( size_t )sizeof( int ) );
 

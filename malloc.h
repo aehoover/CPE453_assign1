@@ -10,6 +10,9 @@ typedef struct Header
 	struct Header *next;
 } Header;
 
+/* */
+void fillWithZeros( Header *ptr, int bytes );
+
 /* copyMem takes two pointers to headers and copies the
 contents of oldH's memory locations to those of newH */
 void copyMem( Header *oldH, Header *newH );

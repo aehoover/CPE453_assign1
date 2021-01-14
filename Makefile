@@ -7,7 +7,7 @@ malloc: libmalloc.a libmalloc.so
 malloc.o: malloc.c malloc.h
 	$(CC) $(CFLAGS) -c -fPIC malloc.c
 
-test.o: test.c malloc.h
+mytest.o: mytest.c malloc.h
 	$(CC) $(CFLAGS) -c mytest.c
 
 libmalloc.a: malloc.o
