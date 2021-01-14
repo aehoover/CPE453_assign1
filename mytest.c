@@ -6,10 +6,10 @@
 
 int main( int argc, char *argv[] )
 {
-    write( STDOUT_FILENO, startms, sizeof( startms ) );
+    write( STDERR_FILENO, startms, sizeof( startms ) );
     //fputs( startms, stdout );
 
-    int *intPtr = ( int* )malloc( (size_t)sizeof( int ) );
+     int *intPtr = ( int* )malloc( (size_t)sizeof( int ) );
     *intPtr = 9;
 
     int *intPtr2 = ( int* )malloc( ( size_t )sizeof( int ) );
@@ -18,22 +18,12 @@ int main( int argc, char *argv[] )
     int *intPtr3 = ( int* )malloc( ( size_t )sizeof( int ) );
     *intPtr3 = 11;
 
-    /*printf( "%d\n", *intPtr );
-    printf( "%d\n",  intPtr );
-    printf( "%d\n", *intPtr2 );
-    printf( "%d\n",  intPtr2 );
-    printf( "%d\n", *intPtr3 );
-    printf( "%d\n",  intPtr3 );
-
-    printLinked();*/
-
-    free( intPtr );
+    //free( intPtr );
     free( intPtr2 );
-    free( intPtr3 );
+    //free( intPtr3 ); 
 
-    /*printf( "////////////////\n" );
+    //int *intPtr4 = realloc( NULL, ( size_t )sizeof( int ) );
 
-    printLinked();*/
 
     return 0;
 }

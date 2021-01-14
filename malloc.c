@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include "malloc.h"
+#include <stdlib.h>
 
 #define msg "In my malloc\n"
 #define freemsg "In my free\n"
@@ -38,8 +39,8 @@ void printLinked()
 
     while ( TRUE )
     {
-        printf( "header start: %d\n", head );
-        printf( "block start: %d\n", head->block );
+        printf( "header start: %ld\n", ( intptr_t )head );
+        printf( "block start: %ld\n", ( intptr_t )head->block );
         printf( "status: %d\n", head->isFree );
         
         if ( head->next == NULL )
@@ -117,7 +118,8 @@ void extendChunk( Header *header )
 
     if ( header == tail )
     {
-        void *currBreak = sbrk( ( int )CHUNK_SIZE );
+        //void *currBreak = sbrk( ( int )CHUNK_SIZE );
+        sbrk( ( int )CHUNK_SIZE );
         tail->size += CHUNK_SIZE;
     }
 }
@@ -263,7 +265,7 @@ void *malloc( size_t size )
     Header *toAllocate = NULL;
     Header *nextHeader = NULL;
 
-    //write( STDOUT_FILENO, msg, sizeof( msg ) );
+    write( STDERR_FILENO, msg, sizeof( msg ) );
     //fputs( msg, stdout );
 
     /* If malloc has not previously been called, 
@@ -305,7 +307,9 @@ void *malloc( size_t size )
     /* Put another header after the memory the user
     requested, to keep track of how much free space
     is available to the program */
-    nextHeader = movePtr( toAllocate->block, size );
+    //nextHeader = movePtr( toAllocate->block, size );
+    nextHeader = ( Header* )( ( char* )toAllocate->block +
+                                       size );
     nextHeader->size = ( toAllocate->size - size -
                        ( 2 * HEADER_SIZE ) );
     nextHeader->isFree = TRUE;
@@ -325,7 +329,7 @@ void free( void *ptr )
 {
     Header *head = programMem;
 
-    //write( STDOUT_FILENO, freemsg, sizeof( freemsg ) );
+    write( STDOUT_FILENO, freemsg, sizeof( freemsg ) );
     //fputs( freemsg, stdout );
 
     if ( ptr == NULL )
@@ -362,7 +366,7 @@ void free( void *ptr )
 
 void *realloc( void *ptr, size_t size )
 {
-    //write( STDOUT_FILENO, realmsg, sizeof( realmsg ) );
+    write( STDERR_FILENO, realmsg, sizeof( realmsg ) );
 
     Header *newLocation = NULL;
     Header *hPtr = ptr;
@@ -400,7 +404,7 @@ void *realloc( void *ptr, size_t size )
                 /* Make new header for leftover space
                 and put it into the correct space in the 
                 list */
-                Header *newH = ( char* )hPtr->block + size;
+                Header *newH = ( Header* )( ( char* )hPtr->block + size );
                 newH->size = leftoverChunk;
                 newH->isFree = TRUE;
                 newH->next = hPtr->next;
@@ -459,7 +463,7 @@ void *realloc( void *ptr, size_t size )
 
                         /* New header to put on any 
                         leftover free space */
-                        Header *newH = ( char* )hPtr->block + size;
+                        Header *newH = ( Header* )( ( char* )hPtr->block + size );
                         newH->size = hPtr->size - size;
                         newH->isFree = TRUE;
                         newH->next = hPtr->next;
@@ -513,7 +517,7 @@ void *realloc2( void *ptr, size_t size )
         if ( diff > HEADER_SIZE )
         {
             Header *newHeader;
-            intptr_t ptrLocation = ( char* )hPtr + size;
+            intptr_t ptrLocation = ( intptr_t )hPtr + size;
 
             /* Keep the location the same */
             newLocation = hPtr;
