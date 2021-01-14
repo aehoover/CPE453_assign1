@@ -96,5 +96,3 @@ void free( void *ptr );
 
 /* */
 void *realloc( void *ptr, size_t size );
-
-void *realloc2( void *ptr, size_t size );

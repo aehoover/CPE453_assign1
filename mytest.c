@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 #include "malloc.h"
 
 #define startms "Program Start\n"
@@ -9,7 +10,7 @@ int main( int argc, char *argv[] )
     write( STDERR_FILENO, startms, sizeof( startms ) );
     //fputs( startms, stdout );
 
-     int *intPtr = ( int* )malloc( (size_t)sizeof( int ) );
+     /**int *intPtr = ( int* )malloc( (size_t)sizeof( int ) );
     *intPtr = 9;
 
     int *intPtr2 = ( int* )malloc( ( size_t )sizeof( int ) );
@@ -31,7 +32,11 @@ int main( int argc, char *argv[] )
     //printLinked();
     
 
-    //int *intPtr4 = realloc( NULL, ( size_t )sizeof( int ) );
+    //int *intPtr4 = realloc( NULL, ( size_t )sizeof( int ) );*/
+
+    void *doubleChunk = malloc( pow( 2, 24 )  );
+
+    doubleChunk = realloc( doubleChunk, 0 );
 
 
     return 0;

@@ -42,4 +42,4 @@ malloc64.o: malloc.c
 	$(CC) $(CFLAGS) -m64 -c -o malloc64.o malloc.c
 
 clean:
-	rm *.o *.a *.so *.out
+	-rm *.o *.a *.so *.out
